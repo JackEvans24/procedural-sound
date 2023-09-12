@@ -8,6 +8,10 @@ namespace ProceduralAudio
     [RequireComponent(typeof(AudioSource))]
     public class AudioGenerator : MonoBehaviour
     {
+        [Header("References")]
+        [SerializeField] private WaveVisualiser visualiser;
+        
+        [Header("Audio Generation")]
         [SerializeField] private WaveType waveType;
         [SerializeField] private float frequency = 440f; // A4
         [SerializeField] private int sampleRate = 48000;
@@ -44,6 +48,11 @@ namespace ProceduralAudio
                 throw new NotImplementedException();
 
             return _waves[waveType];
+        }
+
+        private void OnValidate()
+        {
+            visualiser.SetWave(GetWave());
         }
     }
 }
