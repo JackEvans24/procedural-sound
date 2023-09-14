@@ -3,27 +3,41 @@ using UnityEngine;
 
 namespace ProceduralAudio
 {
-    [RequireComponent(typeof(LineRenderer))]
     public class WaveVisualiser : MonoBehaviour
     {
-        private IWave _wave;
-
         [Header("References")]
+        [SerializeField] private LineRenderer waveLineRenderer;
         [SerializeField] private LineRenderer baseLineRenderer;
         
+        [Header("Visualisation")]
         [SerializeField] private Vector2 size = new(10, 5);
         [SerializeField] private Vector2 position = new(-5, 0);
         [SerializeField][Min(1)] private int repetitions = 2;
 
-        private LineRenderer _lineRenderer;
+        private AudioController _audioController = AudioController.Instance;
 
+        private Vector3[] _defaultPositions; 
+        
+        private IWave _wave;
+        
         private void Awake()
         {
-            _lineRenderer = GetComponent<LineRenderer>();
+            _defaultPositions = new Vector3[] { new Vector2(position.x, 0f), new Vector2(position.x + size.x, 0f) };
+
+            _audioController.WaveChanged += OnWaveChanged;
+        }
+
+        private void Start()
+        {
             UpdateLineRenderers();
         }
 
-        public void SetWave(IWave wave)
+        private void OnDestroy()
+        {
+            _audioController.WaveChanged -= OnWaveChanged;
+        }
+
+        private void OnWaveChanged(IWave wave)
         {
             _wave = wave;
             UpdateLineRenderers();
@@ -31,7 +45,7 @@ namespace ProceduralAudio
 
         private void UpdateLineRenderers()
         {
-            if (!Application.isPlaying || _lineRenderer == null)
+            if (!Application.isPlaying || waveLineRenderer == null)
                 return;
             
             SetBaselinePoints();
@@ -40,17 +54,17 @@ namespace ProceduralAudio
 
         private void SetBaselinePoints()
         {
-            var points = new Vector3[2];
-
-            points[0] = new Vector3(position.x, 0f);
-            points[1] = new Vector3(position.x + size.x, 0f);
-
-            baseLineRenderer.positionCount = 2;
-            baseLineRenderer.SetPositions(points);
+            SetDefaultLinePositions(baseLineRenderer);
         }
 
         private void SetWavePoints()
         {
+            if (_wave == null)
+            {
+                SetDefaultLinePositions(waveLineRenderer);
+                return;
+            }
+
             var wavePoints = _wave.GetVisualiserPoints();
             var visualiserPoints = new Vector3[wavePoints.Length * repetitions + 1];
 
@@ -69,8 +83,14 @@ namespace ProceduralAudio
             
             visualiserPoints[^1] = new Vector3(position.x + size.x, position.y + _wave.WaveEndHeight * size.y / 2);
 
-            _lineRenderer.positionCount = visualiserPoints.Length;
-            _lineRenderer.SetPositions(visualiserPoints);
+            waveLineRenderer.positionCount = visualiserPoints.Length;
+            waveLineRenderer.SetPositions(visualiserPoints);
+        }
+
+        private void SetDefaultLinePositions(LineRenderer lineRenderer)
+        {
+            lineRenderer.positionCount = 2;
+            lineRenderer.SetPositions(_defaultPositions);
         }
 
         private Vector2 GetPointPosition(Vector2 currentPoint, float xOffset)
@@ -83,6 +103,8 @@ namespace ProceduralAudio
 
         private void OnValidate()
         {
+            if (_defaultPositions == null)
+                return;
             UpdateLineRenderers();
         }
     }
