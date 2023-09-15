@@ -1,3 +1,4 @@
+using ProceduralAudio.Utility;
 using ProceduralAudio.Waves;
 using UnityEngine;
 
@@ -14,20 +15,20 @@ namespace ProceduralAudio
         private int _time;
 
         private IWave _wave;
-        private float _frequency;
+        private int _pitch;
         private float _amplitude;
 
         private void Awake()
         {
             _audioController.WaveChanged += OnWaveChanged;
-            _audioController.FrequencyChanged += OnFrequencyChanged;
+            _audioController.PitchChanged += OnPitchChanged;
             _audioController.AmplitudeChanged += OnAmplitudeChanged;
         }
 
         private void OnDestroy()
         {
             _audioController.WaveChanged -= OnWaveChanged;
-            _audioController.FrequencyChanged -= OnFrequencyChanged;
+            _audioController.PitchChanged -= OnPitchChanged;
             _audioController.AmplitudeChanged -= OnAmplitudeChanged;
         }
 
@@ -37,13 +38,14 @@ namespace ProceduralAudio
                 return;
 
             var activeAmplitude = _amplitude * _wave.AmplitudeModifier;
+            var frequency = MusicUtility.GetFrequencyFromPitch(_pitch);
 
             for (var i = 0; i < data.Length; i += channels, _time++)
             {
                 if (_time >= sampleRate)
                     _time %= sampleRate;
             
-                var sample = _wave.GetSample(_time, sampleRate, _frequency) * activeAmplitude;
+                var sample = _wave.GetSample(_time, sampleRate, frequency) * activeAmplitude;
                 for (var j = 0; j < channels; j++)
                     data[i + j] = sample;
             }
@@ -51,7 +53,7 @@ namespace ProceduralAudio
 
         private void OnWaveChanged(IWave wave) => _wave = wave;
 
-        private void OnFrequencyChanged(float frequency) => _frequency = frequency;
+        private void OnPitchChanged(int pitch) => _pitch = pitch;
 
         private void OnAmplitudeChanged(float amplitude) => _amplitude = amplitude;
     }

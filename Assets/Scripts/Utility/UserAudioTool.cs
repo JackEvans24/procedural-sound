@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using ProceduralAudio.Waves;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 namespace ProceduralAudio.Utility
 {
     public class UserAudioTool : MonoBehaviour
     {
         [SerializeField] private WaveType waveType;
-        [SerializeField] private float frequency = 440f; // A4
         [SerializeField] private float amplitude = 0.2f;
+        [SerializeField] [Range(1, 88)] private int pitch = 49;
         
         private AudioController _audioController = AudioController.Instance;
 
@@ -37,10 +36,10 @@ namespace ProceduralAudio.Utility
             UpdateValues();
         }
 
-        public void UpdateValues()
+        private void UpdateValues()
         {
             _audioController.SetWave(GetWave());
-            _audioController.SetFrequency(frequency);
+            _audioController.SetPitch(pitch);
             _audioController.SetAmplitude(amplitude);
         }
 
