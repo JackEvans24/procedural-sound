@@ -14,6 +14,8 @@ namespace ProceduralAudio
 
         private int _time;
 
+        private bool _play;
+
         private IWave _wave;
         private int _pitch;
         private float _amplitude;
@@ -25,6 +27,14 @@ namespace ProceduralAudio
             _audioController.AmplitudeChanged += OnAmplitudeChanged;
         }
 
+        private void Update()
+        {
+            if (Input.GetButtonDown("Jump"))
+                _play = true;
+            if (Input.GetButtonUp("Jump"))
+                _play = false;
+        }
+
         private void OnDestroy()
         {
             _audioController.WaveChanged -= OnWaveChanged;
@@ -34,6 +44,8 @@ namespace ProceduralAudio
 
         private void OnAudioFilterRead(float[] data, int channels)
         {
+            if (!_play)
+                return;
             if (_wave == null)
                 return;
 
